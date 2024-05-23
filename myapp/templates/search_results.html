@@ -1,0 +1,115 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            position: relative;
+        }
+        .navbar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .results {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+            text-align: center;
+        }
+        .card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .no-results {
+            font-size: 18px;
+            color: #555;
+            margin-top: 20px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/teams/">Teams</a>
+        <a href="/stadiums/">Stadiums</a>
+        <a href="/fixtures/">Fixtures</a>
+    </div>
+    <div class="container">
+        {% if team or stadiums %}
+            <div class="results">
+                {% if team %}
+                    <div class="card">
+                        <h2>Team Information</h2>
+                        <p>{{ team.name }}</p>
+                        <p>Founded: {{ team.founded }}</p>
+                        <p><img src="{{ team.logo }}" alt="Team Logo"></p>
+                    </div>
+                {% endif %}
+                
+                {% for stadium in stadiums %}
+                    <div class="card">
+                        <h2>Stadium Information</h2>
+                        <p>{{ stadium.name }}</p>
+                        <p>Address: {{ stadium.address }}, {{ stadium.city|replace:"Londonderry,Derry" }}</p>
+                        <p>Capacity: {{ stadium.capacity }}</p>
+                        <p>Surface: {{ stadium.surface }}</p>
+                        <p><img src="{{ stadium.image }}" alt="Stadium Image"></p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <p>No team or stadium found for the query.</p>
+            </div>
+        {% endif %}
+        
+        {% if no_ireland %}
+            <div class="no-results">
+                <p>No team or stadium found in Ireland for the query.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
