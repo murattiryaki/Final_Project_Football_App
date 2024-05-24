@@ -14,7 +14,13 @@ SECRET_KEY = 'django-insecure-#0m5@jzr7#hvyw480!-7)=g=kvd*o!$s7hx5znxmghn0cid+$x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.elasticbeanstalk.com',
+    'football-app.azurewebsites.net'
+]
+
 
 
 # Application definition
