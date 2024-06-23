@@ -1,105 +1,25 @@
+{% extends "base.html" %}
 {% load custom_filters %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Irish Premier League Teams</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .navbar {
-            background-color: #333;
-            overflow: hidden;
-            padding: 1rem;
-        }
-        .navbar a {
-            float: left;
-            display: block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-        .navbar a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 1rem;
-        }
-        .teams-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            width: 100%;
-            max-width: 1200px;
-        }
-        .team {
-            border: 1px solid #ddd;
-            padding: 1rem;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            background-color: #fff;
-        }
-        .team img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 10px;
-        }
-        @media (max-width: 768px) {
-            .teams-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        @media (max-width: 480px) {
-            .teams-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <body>
-        <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/teams/">Teams</a>
-            <a href="/stadiums/">Stadiums</a>
-            <a href="/fixtures/">Fixtures</a>
-        </div>
-        <div class="container">
-            <h1>Irish Premier League Teams</h1>
-            {% if teams %}
-                <div class="teams-grid">
-                    {% for item in teams %}
-                        <div class="team">
-                            <img src="{{ item.team.logo }}" alt="{{ item.team.name }} Logo">
-                            <p><strong>{{ item.team.name }}</strong></p>
-                            <p>Founded: {{ item.team.founded }}</p>
-                            <p>Venue: {{ item.venue.name }}</p>
-                            <p>Address: {{ item.venue.address }}, {{ item.venue.city|replace:"Londonderry,Derry" }}</p>
-                            <p>Capacity: {{ item.venue.capacity }}</p>
-                            <img src="{{ item.venue.image }}" alt="{{ item.venue.name }}">
-                            <p><a href="https://www.google.com/maps/dir/?api=1&destination={{ item.venue.name|urlencode }}+{{ item.venue.address|urlencode }}+{{ item.venue.city|urlencode }}+{{ item.venue.country|urlencode }}" target="_blank">Click here for directions to the venue</a></p>
-                            <a href="{% url 'nearby_places' item.venue.name %}">Click here for nearby places close to {{ item.venue.name }}</a>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>No teams found.</p>
-            {% endif %}
-        </div>
-    </body>
-</body>
-</html>
+{% block title %}Irish Premier League Teams{% endblock %}
+{% block content %}
+<h1>Irish Premier League Teams</h1>
+{% if teams %}
+    <div class="card-grid">
+        {% for item in teams %}
+            <div class="card">
+                <img src="{{ item.team.logo }}" alt="{{ item.team.name }} Logo" class="logo">
+                <p><strong>{{ item.team.name }}</strong></p>
+                <p>Founded: {{ item.team.founded }}</p>
+                <p>Venue: {{ item.venue.name }}</p>
+                <p>Address: {{ item.venue.address }}, {{ item.venue.city|replace:"Londonderry,Derry" }}</p>
+                <p>Capacity: {{ item.venue.capacity }}</p>
+                <img src="{{ item.venue.image }}" alt="{{ item.venue.name }}" class="venue">
+                <p><a href="https://www.google.com/maps/dir/?api=1&destination={{ item.venue.name|urlencode }}+{{ item.venue.address|urlencode }}+{{ item.venue.city|urlencode }}+{{ item.venue.country|urlencode }}" target="_blank">Click here for directions to the venue</a></p>
+                <a href="{% url 'nearby_places' item.venue.name %}">Click here for nearby places close to {{ item.venue.name }}</a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No teams found.</p>
+{% endif %}
+{% endblock %}

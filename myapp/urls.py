@@ -1,4 +1,6 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
@@ -10,4 +12,13 @@ urlpatterns = [
     path('fixtures/', views.fixtures, name='fixtures'),
     path('', views.home, name='home'),
     path('nearby-places/<str:venue_name>/', views.nearby_places, name='nearby_places'),
+
+    path('admin/', admin.site.urls),
+
+    path('register/', views.register, name='register'),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('delete-account/', views.delete_account, name='delete_account'),
+
+    path('accounts/', include('accounts.urls')),
 ]

@@ -2,7 +2,7 @@ from django import template
 
 register = template.Library()
 
-@register.filter
+@register.filter(name='replace')
 def replace(value, args):
-    old_value, new_value = args.split(',')
-    return value.replace(old_value, new_value)
+    search, replace = args.split(',')
+    return value.replace(search, replace)
