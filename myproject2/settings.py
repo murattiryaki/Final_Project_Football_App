@@ -129,3 +129,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GOOGLE_API_KEY = 'AIzaSyA5A12ZsZpfqK_Qdx5MBP5YRqtyefJ_yKM'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'football-app.azurewebsites.net']
+# Added Azure hostname to ALLOWED_HOSTS
