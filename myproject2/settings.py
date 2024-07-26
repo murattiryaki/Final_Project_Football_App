@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'myproject2.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'sql_server.pyodbc',
+        'ENGINE': 'mssql',
         'NAME': 'Database_for_football_app',
         'USER': 'murat',          
         'PASSWORD': 'April2024',
