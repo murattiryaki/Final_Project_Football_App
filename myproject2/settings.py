@@ -110,15 +110,8 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-
-# Collect static files here
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles/admin')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
@@ -129,4 +122,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GOOGLE_API_KEY = 'AIzaSyA5A12ZsZpfqK_Qdx5MBP5YRqtyefJ_yKM'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'football-app.azurewebsites.net']
-# Added Azure hostname to ALLOWED_HOSTS
