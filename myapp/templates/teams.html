@@ -15,7 +15,24 @@
                 <p>Capacity: {{ item.venue.capacity }}</p>
                 <img src="{{ item.venue.image }}" alt="{{ item.venue.name }}" class="venue">
                 <p><a href="https://www.google.com/maps/dir/?api=1&destination={{ item.venue.name|urlencode }}+{{ item.venue.address|urlencode }}+{{ item.venue.city|urlencode }}+{{ item.venue.country|urlencode }}" target="_blank">Click here for directions to the venue</a></p>
+
                 <a href="{% url 'nearby_places' item.venue.name %}">Click here for nearby places close to {{ item.venue.name }}</a>
+                
+                {% if request.user.is_authenticated %}
+                    {% if item.team.id in favorite_team_ids %}
+                        <form action="{% url 'remove_favorite_team' item.team.id %}" method="post" class="mt-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">Remove from Favorites</button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'add_favorite_team' item.team.id %}" method="post" class="mt-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-primary">Add to Favorites</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-sm btn-primary mt-2">Login to Add to Favorites</a>
+                {% endif %}
             </div>
         {% endfor %}
     </div>

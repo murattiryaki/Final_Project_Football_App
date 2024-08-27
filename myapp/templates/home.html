@@ -9,7 +9,8 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100vh; /* Full height to center vertically */
+        height: 40vh;
+        margin-bottom: 20px;
     }
     .search-container h1 {
         margin-bottom: 20px;
@@ -37,13 +38,76 @@
         background-color: #ddd;
         color: black;
     }
+
+    .dashboard {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .favorite-teams, .fixtures {
+        flex: 1;
+        margin: 20px;
+        min-width: 300px;
+    }
+
+    .favorite-teams h2, .fixtures h2 {
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .favorite-teams ul, .fixtures ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .favorite-teams li, .fixtures li {
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin: 10px 0;
+        text-align: center;
+    }
 </style>
 
+<!-- Search Section -->
 <div class="search-container">
     <h1>Search Team or Stadium</h1>
-    <form action="/search/" method="get">
+    <form action="{% url 'search' %}" method="get">
         <input type="text" name="q" placeholder="Search..." required>
         <button type="submit">Search</button>
     </form>
 </div>
+
+{% if user.is_authenticated %}
+<div class="dashboard">
+    <!-- Favorite Teams Section -->
+    <div class="favorite-teams">
+        <h2>My Favorite Teams</h2>
+        {% if favorite_teams and favorite_teams|length > 0 %}
+            <ul>
+                {% for team in favorite_teams %}
+                    <li>{{ team.name }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no favorite teams yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Fixtures Section -->
+    <div class="fixtures">
+        <h2>Upcoming Fixtures</h2>
+        {% if fixtures and fixtures|length > 0 %}
+            <ul>
+                {% for fixture in fixtures %}
+                    <li>{{ fixture.home_team }} vs {{ fixture.away_team }} on {{ fixture.date }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No upcoming fixtures for your favorite teams.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

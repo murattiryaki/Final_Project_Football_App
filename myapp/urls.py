@@ -1,22 +1,29 @@
-from django.urls import path, include
 from django.contrib import admin
+from django.urls import path, include
+from myapp import views
 from django.contrib.auth import views as auth_views
-from . import views
+from .views import CustomLoginView
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('search/', views.search, name='search'),
-    path('home/', views.home, name='home'),
+    path('', views.home, name='home'),  
+    path('home/', views.home, name='home'),  
     path('teams/', views.teams, name='teams'),
     path('teams/<int:team_id>/', views.team_detail, name='team_detail'),
     path('stadiums/', views.stadiums, name='stadiums'),
     path('fixtures/', views.fixtures, name='fixtures'),
-    path('', views.home, name='home'),
     path('nearby-places/<str:venue_name>/', views.nearby_places, name='nearby_places'),
-
     path('register/', views.register, name='register'),
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    
+    path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    
     path('delete-account/', views.delete_account, name='delete_account'),
+    path('add_favorite_team/<int:team_id>/', views.add_favorite_team, name='add_favorite_team'),
+    path('remove_favorite_team/<int:team_id>/', views.remove_favorite_team, name='remove_favorite_team'),
 
-    path('accounts/', include('accounts.urls')),
+    path('favorites/', views.favorites_list, name='favorites_list'),
+    
+    path('accounts/', include('django.contrib.auth.urls')),  
 ]

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}My Favorite Teams{% endblock %}
+
+{% block content %}
+<h2>My Favorite Teams</h2>
+<ul>
+    {% for team in favorites %}
+        <li>{{ team.name }}</li>
+    {% empty %}
+        <li>You have no favorite teams yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

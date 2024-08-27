@@ -1,10 +1,14 @@
-from django.contrib.auth import login
+from django.contrib.auth import logout, login, authenticate
 import requests
-import time
 from datetime import datetime, timedelta
 from collections import defaultdict
-import urllib
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib import messages
 from django.conf import settings
+from .models import FavoriteTeam, UserFavoriteTeam, UserReview, Team
+import logging
 
 API_KEY = '0a1f33042a81c173f168fad17044385f'
 API_HOST = 'v3.football.api-sports.io'
@@ -12,6 +16,8 @@ HEADERS = {
     'x-rapidapi-key': API_KEY,
     'x-rapidapi-host': API_HOST
 }
+
+logger = logging.getLogger(__name__)
 
 def fetch_teams(query):
     url = f"https://{API_HOST}/teams"
@@ -98,8 +104,46 @@ def search(request):
 
     return render(request, 'search_results.html', context)
 
+def fetch_fixtures_for_team(team_id):
+    url = f"https://{API_HOST}/fixtures"
+    params = {'team': team_id, 'season': 2024, 'next': 3}
+    response = requests.get(url, headers=HEADERS, params=params)
+    if response.status_code == 200:
+        fixtures = response.json().get('response', [])
+        return fixtures
+    else:
+        return []
+
 def home(request):
-    return render(request, 'home.html')
+    favorite_teams = []
+    fixtures = []
+
+    if request.user.is_authenticated:
+        # Fetch the user's favorite teams
+        user_favorite_teams = UserFavoriteTeam.objects.filter(user=request.user)
+        if user_favorite_teams.exists():
+            favorite_teams = [fav.team for fav in user_favorite_teams]
+        
+        print("Favorite Teams:", favorite_teams)  # Debug: print favorite teams
+
+        # Fetch fixtures for favorite teams
+        for team in favorite_teams:
+            team_fixtures = fetch_fixtures_for_team(team.id)
+            for fixture in team_fixtures:
+                fixtures.append({
+                    'home_team': fixture['teams']['home']['name'],
+                    'away_team': fixture['teams']['away']['name'],
+                    'date': fixture['fixture']['date']
+                })
+        
+        print("Fixtures:", fixtures)  # Debug: print upcoming fixtures
+
+    context = {
+        'favorite_teams': favorite_teams,
+        'fixtures': fixtures[:3],  # Only show next 3 fixtures
+    }
+    return render(request, 'home.html', context)
+
 
 def team_detail(request, team_id):
     url = f"https://{API_HOST}/teams?id={team_id}"
@@ -151,12 +195,6 @@ def fixtures(request):
     
     return render(request, 'fixtures.html', context)
 
-from django.conf import settings
-
-import logging
-
-logger = logging.getLogger(__name__)
-
 def fetch_nearby_places(query, types):
     results = {}
     base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
@@ -188,17 +226,18 @@ def teams(request):
             team['venue']['longitude'] = 'default_longitude'
             teams.append(team)
 
+    # Get the IDs of the user's favorite teams
+    favorite_team_ids = []
+    if request.user.is_authenticated:
+        favorite_team_ids = UserFavoriteTeam.objects.filter(user=request.user).values_list('team__id', flat=True)
+
     context = {
-        'teams': teams
+        'teams': teams,
+        'favorite_team_ids': favorite_team_ids,  # Pass the list of favorite team IDs to the template
     }
     return render(request, 'teams.html', context)
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-from django.contrib import messages
+
 
 @login_required
 def delete_account(request):
@@ -223,3 +262,77 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form})
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f"You are now logged in as {username}.")
+                return redirect('home')
+            else:
+                messages.error(request, "Invalid username or password.")
+        else:
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+@login_required
+def user_logout(request):
+    logout(request)
+    messages.success(request, "You have successfully logged out.")
+    return redirect('home')
+
+from django.contrib import messages
+
+@login_required
+def add_favorite_team(request, team_id):
+    try:
+        team = Team.objects.get(id=team_id)
+    except Team.DoesNotExist:
+        api_url = f"https://{API_HOST}/teams?id={team_id}"
+        response = requests.get(api_url, headers=HEADERS)
+        
+        if response.status_code == 200:
+            team_data = response.json().get('response', [])[0]
+            team = Team.objects.create(
+                id=team_data['team']['id'],
+                name=team_data['team']['name'],
+            )
+        else:
+            messages.error(request, "Team could not be found.")
+            return redirect('home')
+    
+    favorite, created = UserFavoriteTeam.objects.get_or_create(user=request.user, team=team)
+    if created:
+        messages.success(request, f"{team.name} has been added to your favorites!")
+    else:
+        messages.info(request, f"{team.name} is already in your favorites.")
+
+    return redirect('home')
+
+
+@login_required
+def favorites_list(request):
+    user_favorites = UserFavoriteTeam.objects.filter(user=request.user)
+    favorite_teams = [favorite.team for favorite in user_favorites]
+    return render(request, 'favorites_list.html', {'favorites': favorite_teams})
+
+from django.contrib.auth.views import LoginView
+
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html'
+
+from django.shortcuts import get_object_or_404
+
+@login_required
+def remove_favorite_team(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+    UserFavoriteTeam.objects.filter(user=request.user, team=team).delete()
+    messages.success(request, f"{team.name} has been removed from your favorites.")
+    return redirect('home')

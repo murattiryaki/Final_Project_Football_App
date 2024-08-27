@@ -43,7 +43,7 @@ ROOT_URLCONF = 'myproject2.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'myapp', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,4 +121,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GOOGLE_API_KEY = 'AIzaSyA5A12ZsZpfqK_Qdx5MBP5YRqtyefJ_yKM'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'football-app.azurewebsites.net']
+ALLOWED_HOSTS = ['football-app.azurewebsites.net', 'www.football-app.azurewebsites.net','127.0.0.1','localhost']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://football-app.azurewebsites.net',
+]
