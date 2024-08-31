@@ -12,6 +12,7 @@ urlpatterns = [
     path('teams/', views.teams, name='teams'),
     path('teams/<int:team_id>/', views.team_detail, name='team_detail'),
     path('stadiums/', views.stadiums, name='stadiums'),
+    path('standings/', views.standings, name='standings'),
     path('fixtures/', views.fixtures, name='fixtures'),
     path('nearby-places/<str:venue_name>/', views.nearby_places, name='nearby_places'),
     path('register/', views.register, name='register'),
@@ -25,5 +26,8 @@ urlpatterns = [
 
     path('favorites/', views.favorites_list, name='favorites_list'),
     
-    path('accounts/', include('django.contrib.auth.urls')),  
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('venues/<int:venue_id>/', views.venue_detail, name='venue_detail'),
+    path('venues/<int:venue_id>/add_review/', views.add_stadium_review, name='add_stadium_review'),  
 ]
+

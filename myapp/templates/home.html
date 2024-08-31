@@ -38,6 +38,11 @@
         background-color: #ddd;
         color: black;
     }
+    .error-message {
+        color: red;
+        margin-top: 10px;
+        display: none;
+    }
 
     .dashboard {
         display: flex;
@@ -70,20 +75,34 @@
     }
 </style>
 
-<!-- Search Section -->
+<script>
+    function validateSearch() {
+        var input = document.getElementById("searchInput").value;
+        var errorMessage = document.getElementById("errorMessage");
+        
+        if (input.length < 3) {
+            errorMessage.style.display = 'block';
+            return false;
+        }
+        
+        errorMessage.style.display = 'none';
+        return true;  
+    }
+</script>
+
 <div class="search-container">
     <h1>Search Team or Stadium</h1>
-    <form action="{% url 'search' %}" method="get">
-        <input type="text" name="q" placeholder="Search..." required>
+    <form id="searchForm" action="{% url 'search' %}" method="get" onsubmit="return validateSearch()">
+        <input id="searchInput" type="text" name="q" placeholder="Search..." required>
         <button type="submit">Search</button>
+        <p id="errorMessage" class="error-message">Please enter at least 3 letters.</p>
     </form>
 </div>
 
 {% if user.is_authenticated %}
 <div class="dashboard">
-    <!-- Favorite Teams Section -->
     <div class="favorite-teams">
-        <h2>My Favorite Teams</h2>
+        <h2>My Favourite Teams</h2>
         {% if favorite_teams and favorite_teams|length > 0 %}
             <ul>
                 {% for team in favorite_teams %}
@@ -91,11 +110,10 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>You have no favorite teams yet.</p>
+            <p>You have no favourite teams yet.</p>
         {% endif %}
     </div>
 
-    <!-- Fixtures Section -->
     <div class="fixtures">
         <h2>Upcoming Fixtures</h2>
         {% if fixtures and fixtures|length > 0 %}
@@ -105,7 +123,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>No upcoming fixtures for your favorite teams.</p>
+            <p>No upcoming fixtures for your favourite teams.</p>
         {% endif %}
     </div>
 </div>

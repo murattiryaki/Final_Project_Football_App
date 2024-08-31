@@ -2,6 +2,56 @@
 {% load custom_filters %}
 {% block title %}Irish Premier League Stadiums{% endblock %}
 {% block content %}
+
+<style>
+    .card-grid {
+        text-align: left;
+    }
+
+    .card-grid .btn { 
+        display: inline-block;
+        margin-bottom: 5px;
+        padding: 10px 20px;
+        font-size: 12px;
+        text-align: left;  
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        color: white;
+        width: 100%;  
+    }
+
+    .card-grid .btn-primary {
+        background-color: #007bff; 
+    }
+
+    .card-grid .btn-secondary {
+        background-color: #28a745; 
+    }
+
+    .card-grid .btn-tertiary {
+        background-color: #ffc107; 
+    }
+
+    .card-grid .btn-quaternary {
+        background-color: #007bff; 
+    }
+
+    .card-grid .btn-primary:hover,
+    .card-grid .btn-secondary:hover,
+    .card-grid .btn-tertiary:hover,
+    .card-grid .btn-quaternary:hover {
+        opacity: 0.9;
+        transition: opacity 0.3s;
+    }
+
+    .card-grid .card a {
+        display: inline-block;
+        width: 100%;
+        text-align: left;
+    }
+</style>
+
 <h1>Irish Premier League Stadiums</h1>
 {% if stadiums %}
     <div class="card-grid">
@@ -17,6 +67,20 @@
                 <p>Capacity: {{ stadium.capacity }}</p>
                 <p>Surface: {{ stadium.surface }}</p>
                 <img src="{{ stadium.image }}" alt="{{ stadium.name }} Image" class="venue">
+                
+                
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ stadium.name|urlencode }}+{{ stadium.address|urlencode }}+{{ stadium.city|urlencode }}" target="_blank" class="btn btn-primary mt-2">Click here for directions to the venue</a>
+                
+                
+                <a href="{% url 'nearby_places' stadium.name %}" target="_blank" class="btn btn-secondary mt-2">Click here for nearby places close to {{ stadium.name }}</a>
+                
+                {% if request.user.is_authenticated %}
+                    
+                    <a href="{% url 'add_stadium_review' stadium.id %}" class="btn btn-quaternary mt-2">Leave or View Review(s) for this Stadium</a>
+                {% else %}
+                    
+                    <a href="{% url 'login' %}" class="btn btn-quaternary mt-2">Login to Leave or View Review(s) for this Stadium</a>
+                {% endif %}
             </div>
         {% endfor %}
     </div>

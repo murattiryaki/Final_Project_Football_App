@@ -4,36 +4,59 @@
 {% block content %}
 <h1>Search Results</h1>
 {% if team or stadiums %}
-    <div class="search-results-grid"> <!-- Use the new class here -->
+    <div class="search-results-grid">
         {% if team %}
             <div class="card">
                 <h2>Team Information</h2>
                 <p>{{ team.name }}</p>
                 <p>Founded: {{ team.founded }}</p>
                 <p><img src="{{ team.logo }}" alt="Team Logo" class="logo"></p>
+
+                {% if request.user.is_authenticated %}
+                    {% if team.id in favorite_team_ids %}
+                        <form action="{% url 'remove_favorite_team' team.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">Remove from Favourite Teams</button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'add_favorite_team' team.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">Add this team to Favourites</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">Login to Add this team to Favourites</a>
+                {% endif %}
             </div>
         {% endif %}
-        
-        {% for stadium in stadiums %}
-            <div class="card">
-                <h2>Stadium Information</h2>
-                <p>{{ stadium.name }}</p>
-                <p>Address: {{ stadium.address }}, {{ stadium.city|replace:"Londonderry,Derry" }}</p>
-                <p>Capacity: {{ stadium.capacity }}</p>
-                <p>Surface: {{ stadium.surface }}</p>
-                <p><img src="{{ stadium.image }}" alt="Stadium Image" class="venue"></p>
-            </div>
-        {% endfor %}
+
+        {% if stadiums %}
+            {% for stadium in stadiums %}
+                <div class="card">
+                    <h2>Stadium Information</h2>
+                    <p>{{ stadium.name }}</p>
+                    <p>Address: {{ stadium.address }}, {{ stadium.city|replace:"Londonderry,Derry" }}</p>
+                    <p>Capacity: {{ stadium.capacity }}</p>
+                    <p>Surface: {{ stadium.surface }}</p>
+                    <p><img src="{{ stadium.image }}" alt="Stadium Image" class="venue"></p>
+    
+                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ stadium.name|urlencode }}+{{ stadium.address|urlencode }}+{{ stadium.city|urlencode }}" target="_blank" class="btn btn-primary mt-2">Click here for directions to the venue</a>
+                    
+                    <a href="{% url 'nearby_places' stadium.name %}" target="_blank" class="btn btn-primary mt-2">Click here for nearby places close to {{ stadium.name }}</a>
+                    
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'add_stadium_review' stadium.id %}" class="btn btn-primary mt-2">Leave or View Review(s) for this Stadium</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary mt-2">Login to Leave or View Review(s) for this Stadium</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+    
     </div>
 {% else %}
     <div class="no-results">
         <p>No team or stadium found for the query.</p>
-    </div>
-{% endif %}
-
-{% if no_ireland %}
-    <div class="no-results">
-        <p>No team or stadium found in Ireland for the query.</p>
     </div>
 {% endif %}
 {% endblock %}

@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.conf import settings
-from .models import FavoriteTeam, UserFavoriteTeam, UserReview, Team
+from .models import UserFavoriteTeam, Team
 import logging
 
 API_KEY = '0a1f33042a81c173f168fad17044385f'
@@ -50,7 +50,12 @@ def search(request):
     
     team = None
     stadiums = []
-    no_ireland = False
+
+    if request.user.is_authenticated:
+        favorite_teams = request.user.favorite_teams.all()
+        favorite_team_ids = [fav.team.id for fav in favorite_teams]
+    else:
+        favorite_team_ids = []
 
     def add_stadium(stadium_data):
         for stadium in stadiums:
@@ -65,6 +70,7 @@ def search(request):
             venue_data = ireland_teams[0]['venue']
             
             team = {
+                'id': team_data['id'],
                 'name': team_data['name'],
                 'country': team_data['country'],
                 'logo': team_data['logo'],
@@ -73,6 +79,7 @@ def search(request):
             
             if venue_data:
                 add_stadium({
+                    'id': venue_data['id'],
                     'name': venue_data['name'],
                     'address': venue_data['address'],
                     'city': venue_data['city'],
@@ -81,32 +88,28 @@ def search(request):
                     'image': venue_data['image']
                 })
 
-    if venues_response['results'] > 0:
-        ireland_venues = [venue for venue in venues_response['response'] if venue['country'] == 'Ireland']
-        for venue_data in ireland_venues:
-            add_stadium({
-                'name': venue_data['name'],
-                'address': venue_data['address'],
-                'city': venue_data['city'],
-                'capacity': venue_data['capacity'],
-                'surface': venue_data['surface'],
-                'image': venue_data['image']
-            })
-
-    if not team and not stadiums:
-        no_ireland = True
+    ireland_venues = [venue for venue in venues_response['response'] if venue['country'] == 'Ireland']
+    for venue in ireland_venues:
+        add_stadium({
+            'id': venue['id'],
+            'name': venue['name'],
+            'address': venue.get('address', ''),
+            'city': venue.get('city', ''),
+            'capacity': venue.get('capacity', 0),
+            'surface': venue.get('surface', ''),
+            'image': venue.get('image', '')
+        })
 
     context = {
         'team': team,
         'stadiums': stadiums,
-        'no_ireland': no_ireland
+        'favorite_team_ids': favorite_team_ids,
     }
-
     return render(request, 'search_results.html', context)
 
 def fetch_fixtures_for_team(team_id):
     url = f"https://{API_HOST}/fixtures"
-    params = {'team': team_id, 'season': 2024, 'next': 3}
+    params = {'team': team_id, 'season': 2024, 'next': 5}
     response = requests.get(url, headers=HEADERS, params=params)
     if response.status_code == 200:
         fixtures = response.json().get('response', [])
@@ -114,33 +117,61 @@ def fetch_fixtures_for_team(team_id):
     else:
         return []
 
+from datetime import datetime
+
 def home(request):
     favorite_teams = []
     fixtures = []
 
     if request.user.is_authenticated:
-        # Fetch the user's favorite teams
+        
         user_favorite_teams = UserFavoriteTeam.objects.filter(user=request.user)
         if user_favorite_teams.exists():
             favorite_teams = [fav.team for fav in user_favorite_teams]
-        
-        print("Favorite Teams:", favorite_teams)  # Debug: print favorite teams
 
-        # Fetch fixtures for favorite teams
+        print("Favorite Teams:", favorite_teams)  
+
+        
         for team in favorite_teams:
             team_fixtures = fetch_fixtures_for_team(team.id)
-            for fixture in team_fixtures:
+            if team_fixtures:
+                
+                fixture = team_fixtures[0]  
+                fixture_date = datetime.strptime(fixture['fixture']['date'], '%Y-%m-%dT%H:%M:%S%z')
+                formatted_date = fixture_date.strftime('%d/%m/%Y %H:%M')
+
                 fixtures.append({
                     'home_team': fixture['teams']['home']['name'],
                     'away_team': fixture['teams']['away']['name'],
-                    'date': fixture['fixture']['date']
+                    'date': formatted_date,  
+                    'referee': fixture['fixture'].get('referee', 'N/A'),
+                    'home_logo': fixture['teams']['home']['logo'],
+                    'away_logo': fixture['teams']['away']['logo'],
+                    'result': f"{fixture['goals']['home']} - {fixture['goals']['away']}"
                 })
+
         
-        print("Fixtures:", fixtures)  # Debug: print upcoming fixtures
+        while len(fixtures) < 3 and len(favorite_teams) > 0:
+            for team in favorite_teams:
+                team_fixtures = fetch_fixtures_for_team(team.id)
+                if team_fixtures and len(fixtures) < 3:
+                    fixture = team_fixtures[1]  
+                    fixture_date = datetime.strptime(fixture['fixture']['date'], '%Y-%m-%dT%H:%M:%S%z')
+                    formatted_date = fixture_date.strftime('%d/%m/%Y %H:%M')
+
+                    fixtures.append({
+                        'home_team': fixture['teams']['home']['name'],
+                        'away_team': fixture['teams']['away']['name'],
+                        'date': formatted_date,  
+                        'referee': fixture['fixture'].get('referee', 'N/A'),
+                        'home_logo': fixture['teams']['home']['logo'],
+                        'away_logo': fixture['teams']['away']['logo'],
+                        'result': f"{fixture['goals']['home']} - {fixture['goals']['away']}"
+                    })
 
     context = {
         'favorite_teams': favorite_teams,
-        'fixtures': fixtures[:3],  # Only show next 3 fixtures
+        'fixtures': fixtures[:4],  
     }
     return render(request, 'home.html', context)
 
@@ -164,15 +195,23 @@ def stadiums(request):
     }
     return render(request, 'stadiums.html', context)
 
+import requests
+from datetime import datetime, timedelta
+from collections import defaultdict
+from django.shortcuts import render
+
 def fetch_irish_premier_fixtures():
     url = f"https://{API_HOST}/fixtures"
-    params = {'league': 357, 'season': 2024}
+    params = {
+        'league': 357,  
+        'season': 2024  
+    }
     response = requests.get(url, headers=HEADERS, params=params)
     return response.json()
 
 def fixtures(request):
     fixture_response = fetch_irish_premier_fixtures()
-    fixtures = fixture_response['response'] if fixture_response['response'] else []
+    fixtures = fixture_response.get('response', [])
 
     current_date = datetime.utcnow().date()
     start_of_week = current_date - timedelta(days=current_date.weekday())
@@ -182,11 +221,34 @@ def fixtures(request):
     fixtures_by_round = defaultdict(list)
 
     for fixture in fixtures:
-        fixture_date = datetime.strptime(fixture['fixture']['date'][:10], '%Y-%m-%d').date()
+        fixture_date_str = fixture['fixture']['date']
+        fixture_date = datetime.strptime(fixture_date_str[:10], '%Y-%m-%d').date()
+        formatted_date = datetime.strptime(fixture_date_str, '%Y-%m-%dT%H:%M:%S%z').strftime('%d/%m/%Y %H:%M')
+
+        
+        venue = fixture.get('venue', {})
+        venue_name = venue.get('name', 'Venue TBD')
+        venue_city = venue.get('city', '')
+
+        
+        fixture_data = {
+            'home_team': fixture['teams']['home']['name'],
+            'away_team': fixture['teams']['away']['name'],
+            'date': formatted_date,
+            'venue': f"{venue_name}, {venue_city}" if venue_city else venue_name,
+            'referee': fixture['fixture'].get('referee', 'Referee TBD'),
+            'result': f"{fixture['goals']['home']} - {fixture['goals']['away']}",
+            'home_logo': fixture['teams']['home'].get('logo', ''),
+            'away_logo': fixture['teams']['away'].get('logo', '')
+        }
+
+        
         if start_of_week <= fixture_date <= end_of_week:
-            this_week_fixtures.append(fixture)
+            this_week_fixtures.append(fixture_data)
+
+        
         round_name = fixture['league']['round']
-        fixtures_by_round[round_name].append(fixture)
+        fixtures_by_round[round_name].append(fixture_data)
 
     context = {
         'this_week_fixtures': this_week_fixtures,
@@ -226,14 +288,14 @@ def teams(request):
             team['venue']['longitude'] = 'default_longitude'
             teams.append(team)
 
-    # Get the IDs of the user's favorite teams
+    
     favorite_team_ids = []
     if request.user.is_authenticated:
         favorite_team_ids = UserFavoriteTeam.objects.filter(user=request.user).values_list('team__id', flat=True)
 
     context = {
         'teams': teams,
-        'favorite_team_ids': favorite_team_ids,  # Pass the list of favorite team IDs to the template
+        'favorite_team_ids': favorite_team_ids, 
     }
     return render(request, 'teams.html', context)
 
@@ -336,3 +398,105 @@ def remove_favorite_team(request, team_id):
     UserFavoriteTeam.objects.filter(user=request.user, team=team).delete()
     messages.success(request, f"{team.name} has been removed from your favorites.")
     return redirect('home')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import StadiumReview, Venue
+from .forms import StadiumReviewForm
+import requests
+
+
+@login_required
+def add_stadium_review(request, venue_id):
+    try:
+        venue = Venue.objects.get(id=venue_id)
+    except Venue.DoesNotExist:
+        # Fetch venue details from the API
+        api_url = f"https://{API_HOST}/venues?id={venue_id}"
+        response = requests.get(api_url, headers=HEADERS)
+        
+        if response.status_code == 200:
+            venue_data = response.json().get('response', [])[0]
+            venue = Venue.objects.create(
+                id=venue_data['id'],
+                name=venue_data['name'],
+                address=venue_data.get('address', ''),
+                city=venue_data.get('city', ''),
+                capacity=venue_data.get('capacity', 0),
+                image=venue_data.get('image', '')
+            )
+        else:
+            messages.error(request, "Venue could not be found.")
+            return redirect('home')
+    
+    reviews = venue.stadiumreview_set.all()
+
+    if request.method == "POST":
+        form = StadiumReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.venue = venue
+            review.save()
+            messages.success(request, "Your review has been added.")
+            return redirect('add_stadium_review', venue_id=venue.id)
+    else:
+        form = StadiumReviewForm()
+
+    return render(request, 'add_stadium_review.html', {'form': form, 'venue': venue, 'reviews': reviews})
+
+@login_required
+def venue_detail(request, venue_id):
+    try:
+        venue = Venue.objects.get(id=venue_id)
+    except Venue.DoesNotExist:
+        
+        api_url = f"https://{API_HOST}/venues?id={venue_id}"
+        response = requests.get(api_url, headers=HEADERS)
+        
+        if response.status_code == 200:
+            venue_data = response.json().get('response', [])[0]
+            venue = Venue.objects.create(
+                id=venue_data['id'],
+                name=venue_data['name'],
+                address=venue_data.get('address', ''),
+                city=venue_data.get('city', ''),
+                capacity=venue_data.get('capacity', 0),
+                image=venue_data.get('image', '')
+            )
+            
+            return redirect('add_stadium_review', venue_id=venue.id)
+        else:
+            return render(request, '404.html', status=404)  
+    else:
+        
+        reviews = StadiumReview.objects.filter(venue=venue)
+        if not reviews.exists():
+            return redirect('add_stadium_review', venue_id=venue.id)
+    
+    return render(request, 'venue_detail.html', {
+        'venue': venue,
+        'reviews': reviews,
+    })
+
+def fetch_standings(league_id, season):
+    url = f"https://{API_HOST}/standings"
+    params = {'league': league_id, 'season': season}
+    response = requests.get(url, headers=HEADERS, params=params)
+    return response.json()
+
+def standings(request):
+    league_id = 357  
+    season = 2024    
+    standings_data = fetch_standings(league_id, season)
+    
+    
+    standings = standings_data.get('response', [])[0].get('league', {}).get('standings', [])[0] if standings_data['results'] > 0 else []
+
+    context = {
+        'standings': standings
+    }
+    return render(request, 'standings.html', context)
+
+

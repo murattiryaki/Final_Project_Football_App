@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ venue.name }}{% endblock %}
+{% block content %}
+<h1>{{ venue.name }}</h1>
+<p>Address: {{ venue.address }}</p>
+<p>City: {{ venue.city }}</p>
+<p>Capacity: {{ venue.capacity }}</p>
+<img src="{{ venue.image }}" alt="{{ venue.name }}">
+
+<h2>Reviews</h2>
+{% if reviews %}
+    <ul>
+        {% for review in reviews %}
+            <li>
+                <strong>{{ review.user.username }}</strong> - {{ review.date_added|date:"F j, Y" }}<br>
+                Rating: {{ review.rating }}<br>
+                {{ review.review_text }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No reviews yet. Be the first to review this stadium!</p>
+{% endif %}
+
+<a href="{% url 'add_stadium_review' venue.id %}" class="btn btn-primary">Leave a Review</a>
+
+{% endblock %}

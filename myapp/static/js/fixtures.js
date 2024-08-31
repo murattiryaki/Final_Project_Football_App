@@ -19,8 +19,6 @@ function toggleDropdown(id) {
         content.style.display = "block";
     }
 }
-
-// Open the upcoming fixtures tab by default
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelector(".tablinks").click();
 });

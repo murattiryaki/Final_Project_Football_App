@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Irish Premier League Fixtures{% endblock %}
 {% block content %}
+
 <h2>Filter Fixtures by Round</h2>
 <div class="dropdown">
     <select id="round-select" onchange="showFixturesByRound(this.value)">
@@ -10,43 +11,44 @@
         {% endfor %}
     </select>
 </div>
+
 <div id="fixtures-container">
     {% for round, fixtures in fixtures_by_round.items %}
         <div id="round-{{ round|slugify }}" class="round-content" style="display: none;">
             <div class="card-grid">
                 {% for fixture in fixtures %}
                     <div class="card">
-                        <h2>{{ fixture.teams.home.name }} vs {{ fixture.teams.away.name }}</h2>
-                        <p>{{ fixture.league.name }} | Round: {{ fixture.league.round }}</p>
-                        <p>Date: {{ fixture.fixture.date }}</p>
-                        <p>Venue: {{ fixture.venue.name }}, {{ fixture.venue.city }}</p>
-                        <p>Referee: {{ fixture.fixture.referee }}</p>
-                        <img src="{{ fixture.teams.home.logo }}" alt="{{ fixture.teams.home.name }} Logo">
-                        <img src="{{ fixture.teams.away.logo }}" alt="{{ fixture.teams.away.name }} Logo">
+                        <h2>{{ fixture.home_team }} vs {{ fixture.away_team }}</h2>
+                        <p>Date: {{ fixture.date|default:"N/A" }}</p>
+                        <p>Referee: {{ fixture.referee|default:"N/A" }}</p>
+                        <p>Result: {{ fixture.result|default:"N/A" }}</p>
+                        <img src="{{ fixture.home_logo }}" alt="{{ fixture.home_team }} Logo">
+                        <img src="{{ fixture.away_logo }}" alt="{{ fixture.away_team }} Logo">
                     </div>
                 {% endfor %}
             </div>
         </div>
     {% endfor %}
 </div>
+
+ 
 <h2>This Week's Fixtures</h2>
 <div id="this-week-fixtures" class="card-grid">
     {% if this_week_fixtures %}
         {% for fixture in this_week_fixtures %}
             <div class="card">
-                <h2>{{ fixture.teams.home.name }} vs {{ fixture.teams.away.name }}</h2>
-                <p>{{ fixture.league.name }} | Round: {{ fixture.league.round }}</p>
-                <p>Date: {{ fixture.fixture.date }}</p>
-                <p>Venue: {{ fixture.venue.name }}, {{ fixture.venue.city }}</p>
-                <p>Referee: {{ fixture.fixture.referee }}</p>
-                <img src="{{ fixture.teams.home.logo }}" alt="{{ fixture.teams.home.name }} Logo">
-                <img src="{{ fixture.teams.away.logo }}" alt="{{ fixture.teams.away.name }} Logo">
+                <h2>{{ fixture.home_team }} vs {{ fixture.away_team }}</h2>
+                <p>Date: {{ fixture.date|default:"N/A" }}</p>
+                <p>Result: {{ fixture.result|default:"N/A" }}</p>
+                <img src="{{ fixture.home_logo }}" alt="{{ fixture.home_team }} Logo">
+                <img src="{{ fixture.away_logo }}" alt="{{ fixture.away_team }} Logo">
             </div>
         {% endfor %}
     {% else %}
         <p>No fixtures found for this week.</p>
     {% endif %}
 </div>
+
 <script>
     function showFixturesByRound(roundId) {
         document.querySelectorAll('.round-content').forEach(function(content) {
