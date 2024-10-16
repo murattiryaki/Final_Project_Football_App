@@ -32,11 +32,13 @@ This is a web application that helps football fans organize their matchday trave
    ```bash
    python3 -m venv env
    source env/bin/activate
+   ```
 
    On Windows:
    ```bash
    python -m venv env
    env\Scripts\activate
+   ```
 
 
 4. **Install the required dependencies:**
