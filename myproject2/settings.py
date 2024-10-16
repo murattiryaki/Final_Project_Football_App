@@ -67,19 +67,10 @@ WSGI_APPLICATION = 'myproject2.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'Database_for_football_app',
-        'USER': 'murat',          
-        'PASSWORD': 'April2024',
-        'HOST': 'muratti.database.windows.net',
-        'PORT': '1433',
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'timeout': 60,
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -120,7 +111,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GOOGLE_API_KEY = 'AIzaSyA5A12ZsZpfqK_Qdx5MBP5YRqtyefJ_yKM'
+GOOGLE_API_KEY = ''
+
 
 ALLOWED_HOSTS = ['football-app.azurewebsites.net', 'www.football-app.azurewebsites.net','127.0.0.1','localhost']
 

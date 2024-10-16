@@ -4,7 +4,10 @@
 
 {% block content %}
 <h1>Nearby Places around {{ venue_name }}</h1>
-{% if places %}
+
+{% if error %}
+    <div class="alert alert-warning">{{ error }}</div>
+{% elif places %}
     <table>
         {% for place_type, place_list in places.items %}
             <tr><th colspan="3">{{ place_type|capfirst }}</th></tr>

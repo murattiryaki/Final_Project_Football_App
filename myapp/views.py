@@ -259,7 +259,13 @@ def fixtures(request):
 
 def fetch_nearby_places(query, types):
     results = {}
+
+    if not settings.GOOGLE_API_KEY or settings.GOOGLE_API_KEY == 'your-google-api-key-here':
+        
+        return None, "Google API key is missing. Please provide your API key in settings.py."
+
     base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+
     for place_type in types:
         params = {
             "query": f"{query} {place_type}",
@@ -267,14 +273,25 @@ def fetch_nearby_places(query, types):
             "key": settings.GOOGLE_API_KEY
         }
         response = requests.get(base_url, params=params)
+        
         if response.status_code == 200:
             results[place_type] = response.json().get('results', [])
-    return results
+
+    return results, None
 
 def nearby_places(request, venue_name):
     types = ['restaurant', 'cafe', 'hotel', 'pub', 'parking', 'pharmacy', 'atm']
-    places = fetch_nearby_places(venue_name, types)
-    return render(request, 'nearby_places.html', {'places': places, 'venue_name': venue_name})
+    places, error_message = fetch_nearby_places(venue_name, types)
+
+    context = {
+        'venue_name': venue_name,
+        'places': places,
+    }
+
+    if error_message:
+        context['error'] = error_message
+
+    return render(request, 'nearby_places.html', context)
 
 def teams(request):
     team_response = fetch_irish_premier_teams()
