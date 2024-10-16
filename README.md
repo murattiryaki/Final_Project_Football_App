@@ -1,4 +1,4 @@
-# Football Match Day Travel Planning App
+# Irish Premier League - Football Match Day Travel Planning App
 (https://murattiryaki.pythonanywhere.com/)
 
 This is a web application that helps football fans organize their matchday travels for the **Irish Premier League**. The app allows users to search for football teams, venues and fixtures, add favorite teams, leave stadium reviews, monitor league standings, get directions to stadiums and explore nearby points of interest (POIs) such as restaurants, hotels, pubs and more.
