@@ -14,8 +14,8 @@ This is a web application that helps football fans organize their matchday trave
 
 ### Prerequisites
 
-- Python 3.x
-- Django 4.x
+- Python 3.9.6
+- Django 4.2.16
 - Google Places API key (optional, but required for the "Nearby Places" feature)
 
 ### Installation
@@ -29,10 +29,12 @@ This is a web application that helps football fans organize their matchday trave
 2. **Create and activate a virtual environment (optional, but recommended):**
 
    On macOS/Linux:
+   ```bash
    python3 -m venv env
    source env/bin/activate
 
    On Windows:
+   ```bash
    python -m venv env
    env\Scripts\activate
 
