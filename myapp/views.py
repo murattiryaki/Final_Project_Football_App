@@ -33,7 +33,7 @@ def fetch_venues(query):
 
 def fetch_irish_premier_teams():
     url = f"https://{API_HOST}/teams"
-    params = {'league': 357, 'season': 2024}
+    params = {'league': 357, 'season': 2025}
     response = requests.get(url, headers=HEADERS, params=params)
     return response.json()
 
@@ -109,7 +109,7 @@ def search(request):
 
 def fetch_fixtures_for_team(team_id):
     url = f"https://{API_HOST}/fixtures"
-    params = {'team': team_id, 'season': 2024, 'next': 5}
+    params = {'team': team_id, 'season': 2025, 'next': 5}
     response = requests.get(url, headers=HEADERS, params=params)
     if response.status_code == 200:
         fixtures = response.json().get('response', [])
@@ -204,7 +204,7 @@ def fetch_irish_premier_fixtures():
     url = f"https://{API_HOST}/fixtures"
     params = {
         'league': 357,  
-        'season': 2024  
+        'season': 2025  
     }
     response = requests.get(url, headers=HEADERS, params=params)
     return response.json()
@@ -505,7 +505,7 @@ def fetch_standings(league_id, season):
 
 def standings(request):
     league_id = 357  
-    season = 2024    
+    season = 2025    
     standings_data = fetch_standings(league_id, season)
     
     
