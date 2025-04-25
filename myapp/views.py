@@ -10,7 +10,7 @@ from django.conf import settings
 from .models import UserFavoriteTeam, Team
 import logging
 
-API_KEY = '0a1f33042a81c173f168fad17044385f'
+API_KEY = 'fa2ab87f07decfb1b721154679a30d30'
 API_HOST = 'v3.football.api-sports.io'
 HEADERS = {
     'x-rapidapi-key': API_KEY,
